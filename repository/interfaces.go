@@ -11,4 +11,5 @@ type RepositoryInterface interface {
 	SaveRegister(ctx context.Context, input SaveRegisterInput) (output SaveRegisterOutput, err error)
 	Login(ctx context.Context, input GetUsersByPhoneInput) (output GetUsersByPhoneOutput, err error)
 	GetProfileById(ctx context.Context, input GetProfiletByIdInput) (output GetProfileByIdOutput, err error)
+	UpdateNumberLogin(ctx context.Context, input UpdateNumberLoginInput) (err error)
 }

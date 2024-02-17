@@ -31,9 +31,9 @@ func (r *Repository) SaveRegister(ctx context.Context, input SaveRegisterInput) 
 func (r *Repository) Login(ctx context.Context, input GetUsersByPhoneInput) (output GetUsersByPhoneOutput, err error) {
 	err = r.Db.QueryRowContext(
 		ctx,
-		"SELECT id, password FROM users WHERE phone_number = $1",
+		"SELECT id, password, number_login FROM users WHERE phone_number = $1",
 		input.PhoneNumber,
-	).Scan(&output.Id, &output.HashPassword)
+	).Scan(&output.Id, &output.HashPassword, &output.NumberLogin)
 
 	if err != nil {
 		log.Printf("Error querying user data from the database: %v", err)
@@ -50,4 +50,19 @@ func (r *Repository) GetProfileById(ctx context.Context, input GetProfiletByIdIn
 		return output, err
 	}
 	return output, nil
+}
+
+func (r *Repository) UpdateNumberLogin(ctx context.Context, input UpdateNumberLoginInput) (err error) {
+	err = r.Db.QueryRowContext(
+		ctx,
+		"UPDATE users SET number_login = number_login + 1 WHERE id = $1",
+		input.Id,
+	).Err()
+
+	if err != nil {
+		log.Printf("Error updating number_login in the database: %v", err)
+		return err
+	}
+
+	return nil
 }

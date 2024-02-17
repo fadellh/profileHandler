@@ -26,6 +26,7 @@ type GetUsersByPhoneInput struct {
 type GetUsersByPhoneOutput struct {
 	Id           int
 	HashPassword string
+	NumberLogin  int
 }
 
 type GetProfiletByIdInput struct {
@@ -35,4 +36,8 @@ type GetProfiletByIdInput struct {
 type GetProfileByIdOutput struct {
 	Fullname    string
 	PhoneNumber string
+}
+
+type UpdateNumberLoginInput struct {
+	Id int
 }

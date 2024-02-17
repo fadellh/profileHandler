@@ -102,6 +102,15 @@ func (s *Server) AuthLogin(ctx echo.Context) error {
 		return returnError(ctx, http.StatusBadRequest, err.Error())
 	}
 
+	numLoginInput := repository.UpdateNumberLoginInput{
+		Id: repoOut.Id,
+	}
+
+	err = s.Repository.UpdateNumberLogin(ctx.Request().Context(), numLoginInput)
+	if err != nil {
+		return returnError(ctx, http.StatusBadRequest, err.Error())
+	}
+
 	msg := "login success"
 	resp := generated.LoginResponse{
 		Data: &struct {

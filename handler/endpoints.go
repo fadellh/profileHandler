@@ -117,6 +117,31 @@ func (s *Server) AuthLogin(ctx echo.Context) error {
 	return ctx.JSON(http.StatusCreated, resp)
 }
 
+func (s *Server) GetProfile(ctx echo.Context, id int64) error {
+
+	repoInput := repository.GetProfiletByIdInput{
+		Id: id,
+	}
+	repoOut, err := s.Repository.GetProfileById(ctx.Request().Context(), repoInput)
+	if err != nil {
+		return returnError(ctx, http.StatusBadRequest, err.Error())
+	}
+
+	msg := "get profile success"
+	resp := generated.ProfileResponse{
+		Data: &struct {
+			Fullname    *string "json:\"fullname,omitempty\""
+			PhoneNumber *string "json:\"phone_number,omitempty\""
+		}{
+			Fullname:    &repoOut.Fullname,
+			PhoneNumber: &repoOut.PhoneNumber,
+		},
+		Message: &msg,
+	}
+
+	return ctx.JSON(http.StatusCreated, resp)
+}
+
 func returnError(ctx echo.Context, code int, message string) error {
 	errResponse := generated.ErrorResponse{
 		Message: message,

@@ -2,15 +2,12 @@ package repository
 
 import (
 	"context"
-	"fmt"
 	"log"
 )
 
 func (r *Repository) GetTestById(ctx context.Context, input GetTestByIdInput) (output GetTestByIdOutput, err error) {
 	err = r.Db.QueryRowContext(ctx, "SELECT name FROM test WHERE id = $1", input.Id).Scan(&output.Name)
-	log.Printf("Input ID: %s", input.Id)
 	if err != nil {
-		fmt.Println("ERRRR", err)
 		return output, err
 	}
 	return output, nil
@@ -43,5 +40,14 @@ func (r *Repository) Login(ctx context.Context, input GetUsersByPhoneInput) (out
 		return output, err
 	}
 
+	return output, nil
+}
+
+func (r *Repository) GetProfileById(ctx context.Context, input GetProfiletByIdInput) (output GetProfileByIdOutput, err error) {
+	err = r.Db.QueryRowContext(ctx, "SELECT fullname, phone_number FROM users WHERE id = $1", input.Id).Scan(&output.Fullname, &output.PhoneNumber)
+	if err != nil {
+		log.Printf("Error querying user data from the database: %v", err)
+		return output, err
+	}
 	return output, nil
 }

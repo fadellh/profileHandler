@@ -68,6 +68,9 @@ paths:
     post:
       summary: Login a user
       operationId: authLogin
+      # security:
+      #   - BearerAuth:
+      #       - "login:w"
       requestBody:
         description: Login API
         required: true
@@ -77,11 +80,38 @@ paths:
               $ref: '#/components/schemas/Login'
       responses:
         200:
-          description: The inserted fullname with a unique ID
+          description: The get id
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/LoginResponse'
+        '400':
+          description: Bad Request - Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /profile/{id}:
+    get:
+      summary: get profiel
+      operationId: getProfile
+      security:
+        - BearerAuth:
+            - "profile:r"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
         '400':
           description: Bad Request - Invalid input
           content:
@@ -114,6 +144,17 @@ components:
                 id:
                   type: integer
                 jwt:
+                  type: string
+    ProfileResponse:
+      allOf:
+        - $ref: '#/components/schemas/GeneralResponse'
+        - properties:
+            data:
+              type: object
+              properties:
+                fullname:
+                  type: string
+                phone_number:
                   type: string
     Register:
       properties:
@@ -159,3 +200,10 @@ components:
       properties:
         message:
           type: string
+  securitySchemes:
+        BearerAuth:
+          type: http
+          scheme: bearer
+          bearerFormat: JWT
+security:
+  - BearerAuth: [ ]

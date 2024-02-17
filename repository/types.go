@@ -27,3 +27,12 @@ type GetUsersByPhoneOutput struct {
 	Id           int
 	HashPassword string
 }
+
+type GetProfiletByIdInput struct {
+	Id int64
+}
+
+type GetProfileByIdOutput struct {
+	Fullname    string
+	PhoneNumber string
+}

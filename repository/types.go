@@ -18,3 +18,12 @@ type SaveRegisterInput struct {
 type SaveRegisterOutput struct {
 	Id int
 }
+
+type GetUsersByPhoneInput struct {
+	PhoneNumber string
+}
+
+type GetUsersByPhoneOutput struct {
+	Id           int
+	HashPassword string
+}

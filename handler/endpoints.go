@@ -62,7 +62,7 @@ func (s *Server) AuthRegister(ctx echo.Context) error {
 
 	out, err := s.Repository.SaveRegister(ctx.Request().Context(), registerInput)
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, err)
+		return returnError(ctx, http.StatusBadRequest, err.Error())
 	}
 
 	msg := "success"
@@ -88,31 +88,33 @@ func (s *Server) AuthLogin(ctx echo.Context) error {
 	s.Lock()
 	defer s.Unlock()
 
-	// err = validateRegister(login)
-	// if err != nil {
-	// 	return returnError(ctx, http.StatusBadRequest, err.Error())
-	// }
+	repoInput := repository.GetUsersByPhoneInput{
+		PhoneNumber: login.PhoneNumber,
+	}
 
-	// registerInput := repository.SaveRegisterInput{
-	// 	Fullname:     login.Fullname,
-	// 	HashPassword: hashPass,
-	// 	PhoneNumber:  login.PhoneNumber,
-	// }
+	repoOut, err := s.Repository.Login(ctx.Request().Context(), repoInput)
+	if err != nil {
+		return returnError(ctx, http.StatusBadRequest, err.Error())
+	}
 
-	// out, err := s.Repository.SaveRegister(ctx.Request().Context(), registerInput)
-	// if err != nil {
-	// 	return ctx.JSON(http.StatusBadRequest, err)
-	// }
+	err = checkPassword(login.Password, repoOut.HashPassword)
+	if err != nil {
+		return returnError(ctx, http.StatusBadRequest, err.Error())
+	}
 
-	// msg := "success"
-	// resp := generated.RegisterResponse{
-	// 	Data: &struct {
-	// 		Id *int "json:\"id,omitempty\""
-	// 	}{Id: &out.Id},
-	// 	Message: &msg,
-	// }
+	msg := "login success"
+	resp := generated.LoginResponse{
+		Data: &struct {
+			Id  *int    "json:\"id,omitempty\""
+			Jwt *string "json:\"jwt,omitempty\""
+		}{
+			Id:  &repoOut.Id,
+			Jwt: new(string),
+		},
+		Message: &msg,
+	}
 
-	return ctx.JSON(http.StatusCreated, nil)
+	return ctx.JSON(http.StatusCreated, resp)
 }
 
 func returnError(ctx echo.Context, code int, message string) error {
@@ -192,4 +194,9 @@ func hashPassword(password string) (string, error) {
 
 	hashedPassword := string(salt)
 	return hashedPassword, nil
+}
+
+func checkPassword(plaintextPassword, hashedPassword string) error {
+	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(plaintextPassword))
+	return err
 }

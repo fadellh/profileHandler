@@ -30,3 +30,18 @@ func (r *Repository) SaveRegister(ctx context.Context, input SaveRegisterInput) 
 
 	return output, nil
 }
+
+func (r *Repository) Login(ctx context.Context, input GetUsersByPhoneInput) (output GetUsersByPhoneOutput, err error) {
+	err = r.Db.QueryRowContext(
+		ctx,
+		"SELECT id, password FROM users WHERE phone_number = $1",
+		input.PhoneNumber,
+	).Scan(&output.Id, &output.HashPassword)
+
+	if err != nil {
+		log.Printf("Error querying user data from the database: %v", err)
+		return output, err
+	}
+
+	return output, nil
+}

@@ -176,6 +176,59 @@ func (s *Server) GetProfile(ctx echo.Context, id int) error {
 	return ctx.JSON(http.StatusCreated, resp)
 }
 
+func (s *Server) UpdateProfile(ctx echo.Context) error {
+
+	claim, err := claimToken(ctx)
+	if err != nil {
+		return returnError(ctx, http.StatusForbidden, err.Error())
+	}
+
+	var update generated.UpdateProfile
+	err = ctx.Bind(&update)
+	if err != nil {
+		return returnError(ctx, http.StatusBadRequest, "could not bind request body")
+	}
+
+	s.Lock()
+	defer s.Unlock()
+
+	repoInput := repository.GetProfileByPhoneInput{
+		PhoneNumber: update.PhoneNumber,
+	}
+	repoOut, err := s.Repository.GetProfileByPhone(ctx.Request().Context(), repoInput)
+	if err != nil {
+		return returnError(ctx, http.StatusBadRequest, err.Error())
+	}
+
+	if claim.UserID != repoOut.Id {
+		return returnError(ctx, http.StatusForbidden, "Forbidden")
+	}
+
+	updateInput := repository.UpdateProfileInput{
+		Id:       repoOut.Id,
+		Fullname: update.Fullname,
+	}
+
+	err = s.Repository.UpdateProfile(ctx.Request().Context(), updateInput)
+	if err != nil {
+		return returnError(ctx, http.StatusBadRequest, err.Error())
+	}
+
+	msg := "update profile success"
+	resp := generated.ProfileResponse{
+		Data: &struct {
+			Fullname    *string "json:\"fullname,omitempty\""
+			PhoneNumber *string "json:\"phone_number,omitempty\""
+		}{
+			Fullname:    &update.Fullname,
+			PhoneNumber: &repoOut.PhoneNumber,
+		},
+		Message: &msg,
+	}
+
+	return ctx.JSON(http.StatusCreated, resp)
+}
+
 func returnError(ctx echo.Context, code int, message string) error {
 	errResponse := generated.ErrorResponse{
 		Message: message,

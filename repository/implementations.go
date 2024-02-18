@@ -52,6 +52,15 @@ func (r *Repository) GetProfileById(ctx context.Context, input GetProfiletByIdIn
 	return output, nil
 }
 
+func (r *Repository) GetProfileByPhone(ctx context.Context, input GetProfileByPhoneInput) (output GetProfileByPhoneOutput, err error) {
+	err = r.Db.QueryRowContext(ctx, "SELECT id, fullname, phone_number FROM users WHERE phone_number = $1", input.PhoneNumber).Scan(&output.Id, &output.Fullname, &output.PhoneNumber)
+	if err != nil {
+		log.Printf("Error querying user data from the database: %v", err)
+		return output, err
+	}
+	return output, nil
+}
+
 func (r *Repository) UpdateNumberLogin(ctx context.Context, input UpdateNumberLoginInput) (err error) {
 	err = r.Db.QueryRowContext(
 		ctx,
@@ -61,6 +70,21 @@ func (r *Repository) UpdateNumberLogin(ctx context.Context, input UpdateNumberLo
 
 	if err != nil {
 		log.Printf("Error updating number_login in the database: %v", err)
+		return err
+	}
+
+	return nil
+}
+
+func (r *Repository) UpdateProfile(ctx context.Context, input UpdateProfileInput) error {
+	err := r.Db.QueryRowContext(
+		ctx,
+		"UPDATE users SET fullname = $1 WHERE id = $2",
+		input.Fullname, input.Id,
+	).Err()
+
+	if err != nil {
+		log.Printf("Error updating fullname in the database: %v", err)
 		return err
 	}
 

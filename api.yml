@@ -118,6 +118,33 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /profile:
+    put:
+      summary: update profile
+      operationId: updateProfile
+      security:
+        - BearerAuth:
+            - "profile:w"
+      requestBody:
+        description: Update Profile
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfile'
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
+        '400':
+          description: Bad Request - Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
   schemas:
     GeneralResponse:
@@ -177,6 +204,15 @@ components:
       required:
         - phone_number
         - password
+    UpdateProfile:
+      properties:
+        phone_number:
+          type: string
+        fullname:
+          type: string
+      required:
+        - phone_number
+        - fullname
     # ThingWithID:
     #   allOf:
     #     - $ref: '#/components/schemas/Thing'

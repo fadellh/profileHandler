@@ -41,3 +41,24 @@ type GetProfileByIdOutput struct {
 type UpdateNumberLoginInput struct {
 	Id int
 }
+
+type GetProfileByPhoneInput struct {
+	PhoneNumber string
+}
+
+type GetProfileByPhoneOutput struct {
+	Id          int
+	Fullname    string
+	PhoneNumber string
+}
+
+type UpdateProfileInput struct {
+	Id       int
+	Fullname string
+}
+
+type UpdateProfileOutput struct {
+	Id          int
+	Fullname    string
+	PhoneNumber string
+}

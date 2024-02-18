@@ -1,4 +1,4 @@
-# Backend Engineering Interview Assignment (Golang)
+# Backend Engineering
 
 ## Requirements
 

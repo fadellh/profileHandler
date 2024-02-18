@@ -97,14 +97,14 @@ paths:
       operationId: getProfile
       security:
         - BearerAuth:
-            - "profile:r"
+            - "profile:w"
       parameters:
         - name: id
           in: path
           required: true
           schema:
             type: integer
-            format: int64
+            format: int
       responses:
         200:
           description: Successful response

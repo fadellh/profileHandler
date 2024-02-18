@@ -30,7 +30,7 @@ type GetUsersByPhoneOutput struct {
 }
 
 type GetProfiletByIdInput struct {
-	Id int64
+	Id int
 }
 
 type GetProfileByIdOutput struct {

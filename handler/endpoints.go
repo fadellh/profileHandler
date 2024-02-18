@@ -3,15 +3,26 @@ package handler
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
+	"time"
 	"unicode"
 
 	"github.com/SawitProRecruitment/UserService/generated"
 	"github.com/SawitProRecruitment/UserService/repository"
+	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
 )
+
+type CustomClaims struct {
+	UserID int `json:"id"`
+	jwt.StandardClaims
+}
+
+// SecretKey is a secret key used to sign and verify JWTs. In a real application, this should be kept secure.
+var SecretKey = []byte("hello")
 
 // This is just a test endpoint to get you started. Please delete this endpoint.
 // (GET /hello)
@@ -111,6 +122,11 @@ func (s *Server) AuthLogin(ctx echo.Context) error {
 		return returnError(ctx, http.StatusBadRequest, err.Error())
 	}
 
+	token, err := generateToken(repoOut.Id)
+	if err != nil {
+		return returnError(ctx, http.StatusBadRequest, err.Error())
+	}
+
 	msg := "login success"
 	resp := generated.LoginResponse{
 		Data: &struct {
@@ -118,7 +134,7 @@ func (s *Server) AuthLogin(ctx echo.Context) error {
 			Jwt *string "json:\"jwt,omitempty\""
 		}{
 			Id:  &repoOut.Id,
-			Jwt: new(string),
+			Jwt: &token,
 		},
 		Message: &msg,
 	}
@@ -126,7 +142,16 @@ func (s *Server) AuthLogin(ctx echo.Context) error {
 	return ctx.JSON(http.StatusCreated, resp)
 }
 
-func (s *Server) GetProfile(ctx echo.Context, id int64) error {
+func (s *Server) GetProfile(ctx echo.Context, id int) error {
+
+	claim, err := claimToken(ctx)
+	if err != nil {
+		return returnError(ctx, http.StatusForbidden, err.Error())
+	}
+
+	if claim.UserID != id {
+		return returnError(ctx, http.StatusForbidden, "Forbidden")
+	}
 
 	repoInput := repository.GetProfiletByIdInput{
 		Id: id,
@@ -233,4 +258,46 @@ func hashPassword(password string) (string, error) {
 func checkPassword(plaintextPassword, hashedPassword string) error {
 	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(plaintextPassword))
 	return err
+}
+
+func generateToken(userID int) (string, error) {
+	claims := CustomClaims{
+		UserID: userID,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(24 * time.Hour).Unix(),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	signedToken, err := token.SignedString(SecretKey)
+	if err != nil {
+		return "", err
+	}
+
+	return signedToken, nil
+}
+
+func claimToken(e echo.Context) (*CustomClaims, error) {
+	tokenString := e.Request().Header.Get("Authorization")
+
+	if len(tokenString) < 7 || tokenString[:7] != "Bearer " {
+		return nil, errors.New("unauthorized: Missing or invalid Bearer token")
+	}
+	tokenString = tokenString[7:]
+
+	token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(t *jwt.Token) (interface{}, error) {
+		return SecretKey, nil
+	})
+
+	if err != nil {
+		log.Println("Error parsing token:", err)
+		return nil, err
+	}
+
+	if claims, ok := token.Claims.(*CustomClaims); ok && token.Valid {
+		return claims, nil
+	}
+
+	return nil, errors.New("Unauthorized")
 }
